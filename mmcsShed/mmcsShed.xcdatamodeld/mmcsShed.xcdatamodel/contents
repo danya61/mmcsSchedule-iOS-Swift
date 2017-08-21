@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="11759" systemVersion="16A323" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="FridayLessons" representedClassName="FridayLessons" syncable="YES">
+        <attribute name="isUpper" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="room" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="subjectName" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="teacherName" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="timeBefore" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="timeSince" optional="YES" attributeType="String" syncable="YES"/>
+    </entity>
+    <entity name="MondayLessons" representedClassName="MondayLessons" syncable="YES">
+        <attribute name="isUpper" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="room" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="subjectName" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="teacherName" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="timeBefore" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="timeSince" optional="YES" attributeType="String" syncable="YES"/>
+    </entity>
+    <entity name="SaturdayLessons" representedClassName="SaturdayLessons" syncable="YES">
+        <attribute name="isUpper" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="room" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="subjectName" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="teacherName" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="timeBefore" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="timeSince" optional="YES" attributeType="String" syncable="YES"/>
+    </entity>
+    <entity name="ThursdayLessons" representedClassName="ThursdayLessons" syncable="YES">
+        <attribute name="isUpper" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="room" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="subjectName" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="teacherName" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="timeBefore" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="timeSince" optional="YES" attributeType="String" syncable="YES"/>
+    </entity>
+    <entity name="TuesdayLessons" representedClassName="TuesdayLessons" syncable="YES">
+        <attribute name="isUpper" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="room" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="subjectName" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="teacherName" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="timeBefore" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="timeSince" optional="YES" attributeType="String" syncable="YES"/>
+    </entity>
+    <entity name="WednesdayLessons" representedClassName="WednesdayLessons" syncable="YES">
+        <attribute name="isUpper" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="room" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="subjectName" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="teacherName" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="timeBefore" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="timeSince" optional="YES" attributeType="String" syncable="YES"/>
+    </entity>
+    <elements>
+        <element name="FridayLessons" positionX="0" positionY="45" width="128" height="135"/>
+        <element name="MondayLessons" positionX="-63" positionY="-18" width="128" height="135"/>
+        <element name="SaturdayLessons" positionX="18" positionY="63" width="128" height="135"/>
+        <element name="ThursdayLessons" positionX="-18" positionY="27" width="128" height="135"/>
+        <element name="TuesdayLessons" positionX="-54" positionY="-9" width="128" height="135"/>
+        <element name="WednesdayLessons" positionX="-36" positionY="9" width="128" height="135"/>
+    </elements>
+</model>
