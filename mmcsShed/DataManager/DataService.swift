@@ -13,43 +13,43 @@ import SwiftyJSON
 
 final class DataService {
 	
-	fileprivate let currentWeekURL = "http://users.mmcs.sfedu.ru:3000/APIv0/time/week"
-	fileprivate let gradeListURL = "http://users.mmcs.sfedu.ru:3000/APIv0/group/list"
-	fileprivate let scheduleListGroup = "http://users.mmcs.sfedu.ru:3000/APIv0/schedule/group"
-	fileprivate let scheduleListTeacher = "http://users.mmcs.sfedu.ru:3000/APIv1/schedule/teacher"
-	fileprivate let teacherListURL = "http://users.mmcs.sfedu.ru:3000/APIv0/teacher/list"
-	fileprivate let gradeList = "http://users.mmcs.sfedu.ru:3000/APIv1/grade/list"
+	fileprivate let currentWeekURL = "http://schedule.sfedu.ru/APIv0/time/week"
+	fileprivate let gradeListURL = "http://schedule.sfedu.ru/APIv0/group/list"
+	fileprivate let scheduleListGroup = "http://schedule.sfedu.ru/APIv0/schedule/group"
+	fileprivate let scheduleListTeacher = "http://schedule.sfedu.ru/APIv1/schedule/teacher"
+	fileprivate let teacherListURL = "http://schedule.sfedu.ru/APIv0/teacher/list"
+	fileprivate let gradeList = "http://schedule.sfedu.ru/APIv1/grade/list"
 	
 	fileprivate lazy var coreDataManager: CoreDataManager = {
 		return CoreDataManager()
 	}()
 	
-	///проверяем, правильно ли введены данные пользователем 
+	///проверяем, правильно ли введены данные пользователем
 	/// -author: Danya Vorobyev
 	func checkUserInfo(step: String, kourse: Int, group: Int, complition: @escaping ((Bool) -> Void)) {
 		Alamofire
-		.request(gradeList, method: .get, encoding: JSONEncoding.default)
-		.validate()
-		.responseJSON { response in
-			switch response.result {
-			case .success(let result):
-				let jsonResult = JSON(result)
-				var isResult = false
-				for item in jsonResult {
-					if item.1["degree"].stringValue == step && item.1["num"].intValue == kourse {
-						isResult = true
-						let id = item.1["id"].intValue
-						self.checkUserGroup(group: group, kourse: id, complite: { (isHaveGroup) in
-							complition(isHaveGroup)
-						})
+			.request(gradeList, method: .get, encoding: JSONEncoding.default)
+			.validate()
+			.responseJSON { response in
+				switch response.result {
+				case .success(let result):
+					let jsonResult = JSON(result)
+					var isResult = false
+					for item in jsonResult {
+						if item.1["degree"].stringValue == step && item.1["num"].intValue == kourse {
+							isResult = true
+							let id = item.1["id"].intValue
+							self.checkUserGroup(group: group, kourse: id, complite: { (isHaveGroup) in
+								complition(isHaveGroup)
+							})
+						}
 					}
-				}
-				if !isResult {
+					if !isResult {
+						complition(false)
+					}
+				case .failure:
 					complition(false)
 				}
-			case .failure:
-				complition(false)
-			}
 		}
 	}
 	
@@ -79,7 +79,7 @@ final class DataService {
 					complite(false)
 				}
 		}
-
+		
 	}
 	
 	///получаем id для получения расписания группы, после чего вызываем
@@ -88,103 +88,103 @@ final class DataService {
 		let url = gradeListURL + "/" + String(kourse)
 		var id = -1
 		Alamofire.request(url, method: .get, encoding: JSONEncoding.default)
-		.validate()
-		.responseJSON { response in
-			switch response.result {
-			case .success(let result):
-				let jsonResult = JSON(result)
-				for usingItem in jsonResult {
-					if usingItem.1["num"].intValue == group {
-						id = usingItem.1["id"].intValue
-						self.requestScheduleOfGroup(with: id) {
-							complition()
+			.validate()
+			.responseJSON { response in
+				switch response.result {
+				case .success(let result):
+					let jsonResult = JSON(result)
+					for usingItem in jsonResult {
+						if usingItem.1["num"].intValue == group {
+							id = usingItem.1["id"].intValue
+							self.requestScheduleOfGroup(with: id) {
+								complition()
+							}
 						}
 					}
+				case .failure(let error):
+					if let statusCode = response.response?.statusCode {
+						print(error, " ", statusCode)
+						complition()
+					}
 				}
-			case .failure(let error):
-				if let statusCode = response.response?.statusCode {
-					print(error, " ", statusCode)
-					complition()
-				}
-			}
 		}
-
+		
 	}
-
+	
 	///получаем расписание группы
 	///author: Danya Vorobyev
 	func requestScheduleOfGroup(with id: Int, complition: @escaping (() -> Void)) {
 		let url = scheduleListGroup + "/" + String(id)
 		Alamofire.request(url, method: .get, encoding: JSONEncoding.default)
-		.validate()
-		.responseJSON { response in
-			switch response.result {
-			case .success(let result):
-				let jsonRes = JSON(result)
-				print(jsonRes)
-				self.coreDataManager.deleteEntities()
-				let jsonCurricula = jsonRes["curricula"]
-				let jsonLessons = jsonRes["lessons"]
-				var curriculaArray = [CurriculaServerModel]()
-				var lessonsArray = [LessonServerModel]()
-				for (_, item) in jsonCurricula {
-					let localModel = CurriculaServerModel(with: item)
-					curriculaArray.append(localModel)
-				}
-				
-				for (_, item) in jsonLessons {
-					let localModel = LessonServerModel(with: item)
-					lessonsArray.append(localModel)
-				}
-				for item in lessonsArray {
-					item.timeslot.remove(at: item.timeslot.index(before: item.timeslot.endIndex))
-					item.timeslot.remove(at: item.timeslot.startIndex)
-					let timeslotArray = item.timeslot.components(separatedBy: ",")
-					guard timeslotArray.count == 4 else { return }
-					var timeSince = timeslotArray[1]
-					let dayOfWeek = timeslotArray[0]
-					var timeUntil = timeslotArray[2]
-					let upperLowerWeek = timeslotArray[3]
-					var teacherName: String!
-					var subjectName: String!
-					var roomName: String!
-					for cur in curriculaArray {
-						if item.id == cur.lessonId {
-							teacherName = cur.teacherName
-							subjectName = cur.subjectName
-							roomName = cur.roomName
+			.validate()
+			.responseJSON { response in
+				switch response.result {
+				case .success(let result):
+					let jsonRes = JSON(result)
+					print(jsonRes)
+					self.coreDataManager.deleteEntities()
+					let jsonCurricula = jsonRes["curricula"]
+					let jsonLessons = jsonRes["lessons"]
+					var curriculaArray = [CurriculaServerModel]()
+					var lessonsArray = [LessonServerModel]()
+					for (_, item) in jsonCurricula {
+						let localModel = CurriculaServerModel(with: item)
+						curriculaArray.append(localModel)
+					}
+					
+					for (_, item) in jsonLessons {
+						let localModel = LessonServerModel(with: item)
+						lessonsArray.append(localModel)
+					}
+					for item in lessonsArray {
+						item.timeslot.remove(at: item.timeslot.index(before: item.timeslot.endIndex))
+						item.timeslot.remove(at: item.timeslot.startIndex)
+						let timeslotArray = item.timeslot.components(separatedBy: ",")
+						guard timeslotArray.count == 4 else { return }
+						var timeSince = timeslotArray[1]
+						let dayOfWeek = timeslotArray[0]
+						var timeUntil = timeslotArray[2]
+						let upperLowerWeek = timeslotArray[3]
+						var teacherName: String!
+						var subjectName: String!
+						var roomName: String!
+						for cur in curriculaArray {
+							if item.id == cur.lessonId {
+								teacherName = cur.teacherName
+								subjectName = cur.subjectName
+								roomName = cur.roomName
+							}
 						}
+						let timeSinceArray = timeSince.components(separatedBy: ":")
+						timeSince = timeSinceArray[0] + ":" + timeSinceArray[1]
+						let timeUntilArray = timeUntil.components(separatedBy: ":")
+						timeUntil = timeUntilArray[0] + ":" + timeUntilArray[1]
+						var isUp: Int?
+						switch upperLowerWeek {
+						case "full":
+							isUp = 2
+						case "upper":
+							isUp = 0
+						case "lower":
+							isUp = 1
+						default:
+							break
+						}
+						let sheduleLesson = LessonModel(timeSince: timeSince ?? "",
+						                                timeBefore: timeUntil ?? "",
+						                                room: roomName ?? "",
+						                                teacherName: teacherName ?? "",
+						                                subjectName: subjectName ?? "",
+						                                isUp: isUp ?? 2)
+						self.coreDataManager.saveModel(with: Int(dayOfWeek)!, lessonModel: sheduleLesson)
 					}
-					let timeSinceArray = timeSince.components(separatedBy: ":")
-					timeSince = timeSinceArray[0] + ":" + timeSinceArray[1]
-					let timeUntilArray = timeUntil.components(separatedBy: ":")
-					timeUntil = timeUntilArray[0] + ":" + timeUntilArray[1]
-					var isUp: Int?
-					switch upperLowerWeek {
-					case "full":
-						isUp = 2
-					case "upper":
-						isUp = 0
-					case "lower":
-						isUp = 1
-					default:
-						break
-					}
-					let sheduleLesson = LessonModel(timeSince: timeSince ?? "",
-					                                timeBefore: timeUntil ?? "",
-					                                room: roomName ?? "",
-					                                teacherName: teacherName ?? "",
-					                                subjectName: subjectName ?? "",
-					                                isUp: isUp ?? 2)
-					self.coreDataManager.saveModel(with: Int(dayOfWeek)!, lessonModel: sheduleLesson)
-				}
-				complition()
-			case .failure(let error):
-				if let statusCode = response.response?.statusCode {
-					print(error, " ", statusCode)
 					complition()
+				case .failure(let error):
+					if let statusCode = response.response?.statusCode {
+						print(error, " ", statusCode)
+						complition()
+					}
 				}
-			}
 		}
 	}
 	
@@ -270,17 +270,17 @@ final class DataService {
 	///author: Danya Vorobyev
 	func requestCurrentWeek(complition: @escaping ((Int) -> Void)) {
 		Alamofire.request(currentWeekURL, method: .get, encoding: JSONEncoding.default)
-		.validate()
-		.responseJSON { response in
-			switch response.result {
-			case .success(let res):
-				let jsonRes = JSON(res)
-				let type = jsonRes["type"].intValue
-				complition(type)
-			case .failure(let error):
-				print("error current week = ", error.localizedDescription)
-				complition(-1)
-			}
+			.validate()
+			.responseJSON { response in
+				switch response.result {
+				case .success(let res):
+					let jsonRes = JSON(res)
+					let type = jsonRes["type"].intValue
+					complition(type)
+				case .failure(let error):
+					print("error current week = ", error.localizedDescription)
+					complition(-1)
+				}
 		}
 	}
 	
@@ -288,29 +288,69 @@ final class DataService {
 	///author: Danya Vorobyev
 	func requestListOfTeachers(complition: @escaping (([TeacherModel]) -> Void)) {
 		Alamofire.request(teacherListURL, method: .get, encoding: JSONEncoding.default)
-		.validate()
-		.responseJSON { (response) in
-			switch response.result {
-			case .success(let teachers):
-				let downloadGroup = DispatchGroup()
-				let jsonTeachers = JSON(teachers)
-				var teachers: [TeacherModel] = []
-				for item in jsonTeachers {
-					downloadGroup.enter()
-					let temp_teacher = TeacherModel(with: item.1)
-					teachers.append(temp_teacher)
-					downloadGroup.leave()
+			.validate()
+			.responseJSON { (response) in
+				switch response.result {
+				case .success(let teachers):
+					let downloadGroup = DispatchGroup()
+					let jsonTeachers = JSON(teachers)
+					var teachers: [TeacherModel] = []
+					for item in jsonTeachers {
+						downloadGroup.enter()
+						let temp_teacher = TeacherModel(with: item.1)
+						teachers.append(temp_teacher)
+						downloadGroup.leave()
+					}
+					downloadGroup.notify(queue: .main, execute: {
+						complition(teachers)
+					})
+				case .failure(let error):
+					print("Error requesting schedule of teachers: ", error)
 				}
-				downloadGroup.notify(queue: .main, execute: { 
-					complition(teachers)
-				})
-			case .failure(let error):
-				print("Error requesting schedule of teachers: ", error)
-			}
-			
-			
 		}
-		
+	}
+	
+	func courseNumbers(with step: String, complition: @escaping (([Int]) -> Void)) {
+		Alamofire
+			.request(gradeList, method: .get, encoding: JSONEncoding.default)
+			.validate()
+			.responseJSON { response in
+				switch response.result {
+				case .success(let result):
+					let jsonResult = JSON(result)
+					var kourseNumbers = [Int]()
+					for item in jsonResult {
+						if item.1["degree"].stringValue == step  {
+							let num = item.1["num"].intValue
+							kourseNumbers.append(num)
+						}
+					}
+					complition(kourseNumbers)
+				case .failure(let error):
+					print("some error in parsing courseNumber = \(error)")
+				}
+		}
+	}
+	
+	func groupNumber(kourse: Int, complition: @escaping (([Int]) -> Void)) {
+		let url = gradeListURL + "/" + "\(kourse)"
+		Alamofire
+			.request(url, method: .get, encoding: JSONEncoding.default)
+			.validate()
+			.responseJSON { response in
+				switch response.result {
+				case .success(let result):
+					let jsonResult = JSON(result)
+					var groupNumbers = [Int]()
+					for item in jsonResult {
+						let num = item.1["num"].intValue
+						groupNumbers.append(num)
+					}
+					complition(groupNumbers)
+				case .failure(let error):
+					print("some error in parsing courseNumber = \(error)")
+				}
+		}
 	}
 	
 }

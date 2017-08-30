@@ -20,8 +20,8 @@ protocol textfieldMainDelegate: class {
 }
 
 final class PageViewContentController: UIViewController {
-	fileprivate var kourseList = ["1", "2", "3", "4"]
-	fileprivate var groupList = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+	var kourseList = ["1", "2", "3", "4"]
+	var groupList = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
 	fileprivate var bakalavrList = ["Бакалавриат", "Магистратура", "Аспирантура"]
 	fileprivate var state: TextfieldValueState = .stage
 	

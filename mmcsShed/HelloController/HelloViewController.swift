@@ -27,7 +27,7 @@ enum StepState: Int {
 }
 
 final class HelloViewController: UIViewController {
-
+	
 	//Properties
 	fileprivate var curWeek: Int?
 	fileprivate var whiteViewFrame: CGRect?
@@ -103,8 +103,8 @@ final class HelloViewController: UIViewController {
 		self.pageController.didMove(toParentViewController: self)
 		removeSwipeGesture()
 	}
-
-
+	
+	
 	func setCourseWithGroup() {
 		JJHUD.showLoading()
 		var usingKourse = currentEducationInfo.kourse!
@@ -150,8 +150,8 @@ final class HelloViewController: UIViewController {
 	}
 	
 	func showErrorAlert() {
-		let alert = UIAlertController.init(title: "Введены неправильный данные", message: "", preferredStyle: .alert)
-		alert.addAction(UIAlertAction.init(title: "Попробовать еще", style: .cancel, handler: { (action) in
+		let alert = UIAlertController.init(title: "Что-то пошло не так.", message: "", preferredStyle: .alert)
+		alert.addAction(UIAlertAction.init(title: "Попробовать еще раз", style: .cancel, handler: { (action) in
 			self.currentEducationInfo = SelectedEducation()
 			self.pageController.setViewControllers([(self.viewAtIndex(index: 0) as? PageViewContentController)!],
 			                                       direction: .forward,
@@ -200,7 +200,7 @@ final class HelloViewController: UIViewController {
 		buttonPath.close()
 		buttonPath.stroke()
 		buttonPath.reversing()
-
+		
 		designView.backgroundColor = UIColor.init(hex: "#9999ff")
 		designView.alpha = 0.692
 		designView.clipsToBounds = true
@@ -233,7 +233,7 @@ final class HelloViewController: UIViewController {
 		navVC.modalTransitionStyle = .crossDissolve
 		self.present(navVC, animated: true, completion: nil)
 	}
-
+	
 }
 
 extension HelloViewController: UIPageViewControllerDataSource, UIPageViewControllerDelegate {
@@ -246,6 +246,8 @@ extension HelloViewController: UIPageViewControllerDataSource, UIPageViewControl
 				return nil
 		}
 		VC.delegate = self
+		VC.kourseList = self.kourseList
+		VC.groupList = self.groupList
 		VC.ind = index
 		return VC
 	}
@@ -276,7 +278,7 @@ extension HelloViewController: UIPageViewControllerDataSource, UIPageViewControl
 			return
 		}
 		let index = (pageViewController.viewControllers?.first as? PageViewContentController)?.ind
-		guard let strongIndex = index else {
+		guard index != nil else {
 			return
 		}
 	}
@@ -289,6 +291,7 @@ extension HelloViewController: textfieldMainDelegate {
 			self.mmcsImage.alpha = 1
 			self.view.window?.frame.origin.y += 205
 		}, completion: nil)
+		
 		switch state {
 		case .stage:
 			if let strongIndex = index {
@@ -298,21 +301,48 @@ extension HelloViewController: textfieldMainDelegate {
 				return
 			}
 			DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-				self.pageController.setViewControllers([(self.viewAtIndex(index: 1) as? PageViewContentController)!],
-				                                       direction: .forward,
-				                                       animated: true,
-				                                       completion: nil)
+				self.dataService.courseNumbers(with: self.currentEducationInfo.step!.describeSelf, complition: { kourses in
+					self.kourseList = kourses.map {String($0)}
+					self.pageController.setViewControllers([(self.viewAtIndex(index: 1) as? PageViewContentController)!],
+					                                       direction: .forward,
+					                                       animated: true,
+					                                       completion: nil)
+				})
 			}
 		case .kourse:
 			self.currentEducationInfo.kourse = index
 			guard self.currentEducationInfo.kourse != nil else {
 				return
 			}
+			var usableKourse = index
+			if currentEducationInfo.step == StepState.master {
+				switch currentEducationInfo.kourse! {
+				case 1:
+					usableKourse = 6
+				case 2:
+					usableKourse = 7
+				default:
+					break
+				}
+			} else if currentEducationInfo.step == StepState.postgraduate {
+				switch currentEducationInfo.kourse! {
+				case 1:
+					usableKourse = 8
+				case 2:
+					usableKourse = 9
+				default:
+					break
+				}
+			}
+			
 			DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-				self.pageController.setViewControllers([(self.viewAtIndex(index: 2) as? PageViewContentController)!],
-				                                       direction: .forward,
-				                                       animated: true,
-				                                       completion: nil)
+				self.dataService.groupNumber(kourse: usableKourse!, complition: { groups in
+					self.groupList = groups.map {String($0)}
+					self.pageController.setViewControllers([(self.viewAtIndex(index: 2) as? PageViewContentController)!],
+					                                       direction: .forward,
+					                                       animated: true,
+					                                       completion: nil)
+				})
 			}
 		case .group:
 			self.currentEducationInfo.group = index

@@ -132,6 +132,7 @@ extension TeachersListTableViewController {
 		VC.subjectState = ScheduleSate.teacher
 		VC.teacherId = teachModel!.id
 		let navVC = UINavigationController(rootViewController: VC)
+		navVC.modalTransitionStyle = .crossDissolve
 		self.present(navVC, animated: true, completion: nil)
 	}
 	
